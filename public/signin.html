@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+    integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+    crossorigin="anonymous"
+  />
+  <link rel="stylesheet" href="css/style.css" />
+  <title>Sign In - LetsTalk</title>
+</head>
+<body>
+  <div class="join-container">
+    <header class="join-header">
+      <h1><i class="fas fa-smile"></i> LetsTalk</h1>
+    </header>
+    <main class="join-main">
+      <form id="signin-form">
+        <div class="form-control">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            placeholder="Enter email..."
+            required
+          />
+        </div>
+        <div class="form-control">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            placeholder="Enter password..."
+            required
+          />
+        </div>
+        <button type="submit" class="btn">Sign In</button>
+      </form>
+      <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('signin-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      fetch('/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      }).then(response => response.json()).then(data => {
+        if (data.success) {
+          alert('Sign in successful!');
+          localStorage.setItem('token', data.token);
+          window.location.href = 'index.html';
+        } else {
+          alert('Sign in failed: ' + data.message);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

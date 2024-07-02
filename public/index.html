@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+    integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+    crossorigin="anonymous"
+  />
+  <link rel="stylesheet" href="css/style.css" />
+  <title>LetsTalk App</title>
+</head>
+<body>
+  <div class="join-container">
+    <header class="join-header">
+      <h1><i class="fas fa-smile"></i> LetsTalk</h1>
+    </header>
+    <main class="join-main">
+      <form id="join-form">
+        <div class="form-control">
+          <label for="username">Username</label>
+          <input
+            type="text"
+            name="username"
+            id="username"
+            placeholder="Enter username..."
+            required
+          />
+        </div>
+        <div class="form-control">
+          <label for="room-option">Room Option</label>
+          <select name="room-option" id="room-option">
+            <option value="existing-room">Join Existing Room</option>
+            <option value="create-new">Create New Room</option>
+          </select>
+        </div>
+        <div class="form-control" id="existing-room-container">
+          <label for="room-code">Room Code</label>
+          <input
+            type="text"
+            name="room-code"
+            id="room-code"
+            placeholder="Enter room code..."
+          />
+        </div>
+        <div class="form-control" id="new-room-container" style="display:none;">
+          <label for="new-room">New Room Name</label>
+          <input
+            type="text"
+            name="new-room"
+            id="new-room"
+            placeholder="Enter new room name..."
+          />
+        </div>
+        <button type="submit" class="btn">Join Chat</button>
+      </form>
+      <button id="logout-btn" class="btn" style="display:none;">Logout</button>
+      <button id="signup-btn" class="btn" style="display:none;">Sign Up</button>
+      <button id="signin-btn" class="btn" style="display:none;">Sign In</button>
+      <p id="error-message" class="error-message"></p> <!-- Add error message element -->
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const joinForm = document.getElementById('join-form');
+    const roomOption = document.getElementById('room-option');
+    const existingRoomContainer = document.getElementById('existing-room-container');
+    const newRoomContainer = document.getElementById('new-room-container');
+    const newRoomInput = document.getElementById('new-room');
+    const roomCodeInput = document.getElementById('room-code');
+    const logoutBtn = document.getElementById('logout-btn');
+    const signupBtn = document.getElementById('signup-btn');
+    const signinBtn = document.getElementById('signin-btn');
+    const errorMessage = document.getElementById('error-message');
+
+    // Check if user is logged in and display logout button accordingly
+    const token = localStorage.getItem('token');
+    if (token) {
+      logoutBtn.style.display = 'block';
+      signupBtn.style.display = 'none';
+      signinBtn.style.display = 'none';
+    } else {
+      logoutBtn.style.display = 'none';
+      signupBtn.style.display = 'block';
+      signinBtn.style.display = 'block';
+    }
+
+    roomOption.addEventListener('change', function () {
+      if (roomOption.value === 'create-new') {
+        newRoomContainer.style.display = 'block';
+        existingRoomContainer.style.display = 'none';
+      } else {
+        newRoomContainer.style.display = 'none';
+        existingRoomContainer.style.display = 'block';
+      }
+    });
+
+    joinForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      if (roomOption.value === 'create-new') {
+        const room = newRoomInput.value.trim();
+        if (room === '') {
+          alert('Please enter a room name');
+          return;
+        }
+        console.log(`Creating new room: ${room}`);
+        fetch('/createRoom', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token
+          },
+          body: JSON.stringify({ roomName: room })
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              const roomCode = data.roomCode;
+              console.log(`Room created successfully: ${room} with code ${roomCode}`);
+              window.location.href = `chat.html?username=${username}&roomCode=${roomCode}`;
+            } else {
+              errorMessage.textContent = data.message; // Display the error message
+              console.log(`Error creating room: ${data.message}`);
+            }
+          });
+      } else {
+        const roomCode = roomCodeInput.value.trim();
+        if (roomCode === '') {
+          alert('Please enter a room code');
+          return;
+        }
+        console.log(`Joining existing room with code: ${roomCode}`);
+        window.location.href = `chat.html?username=${username}&roomCode=${roomCode}`;
+      }
+    });
+
+    // Logout functionality
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = 'signin.html';
+    });
+
+    // Redirect to sign up page
+    signupBtn.addEventListener('click', () => {
+      window.location.href = 'signup.html';
+    });
+
+    // Redirect to sign in page
+    signinBtn.addEventListener('click', () => {
+      window.location.href = 'signin.html';
+    });
+  </script>
+</body>
+</html>
